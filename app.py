@@ -48,13 +48,13 @@ async def json_to_proto(json_data: str, proto_message: Message) -> bytes:
 def get_account_credentials(region: str) -> str:
     r = region.upper()
     if r == "PK":
-        return "uid=4225420069&password=11F28FE8BD89468DBB39EF44E7CEF538EA0C1F2F6D31FB8D0E48E10B125CBE75"
+        return "uid=3867225844&password=FBFCF72910630E30CB20A256258826E664777F00A9AB233BF00FD6146CB71EFE"
     elif r == "BD":
-        return "uid=3957595605&password=7203510AB3D87E06CE54FC93ABE40D48AA6AEA55E2DEA2D2AA3487CBB20650D7"
+        return "uid=3823448487&password=0A95BD51997C8A1DF4C8FE207D5F46D8DBFEBD6995B8118E6C772EE75418B10E"
     elif r in {"BR", "US", "SAC", "ME"}:
-        return "uid=3788023112&password=5356B7495AC2AD04C0A483CF234D6E56FB29080AC2461DD51E0544F8D455CC24"
+        return "uid=3390807628&password=A0C6804ABF66D9FB7341C103A0DB659BDE559A251D73F8FEE6850871AB9E4559"
     else:
-        return "uid=3301239795&password=DD40EE772FCBD61409BB15033E3DE1B1C54EDA83B75DF0CDD24C34C7C8798475"
+        return "uid=3715771777&password=0D566F7BB8043D03CC57CC5281D8CA427826C382FC527597923C77CB498AA78D"
 
 # === Token Generation ===
 async def get_access_token(account: str):
@@ -173,7 +173,7 @@ async def get_account_info():
         return jsonify({"error": "Please provide UID."}), 400
     
     try:
-        # Always use Pk region
+        # Default region
         region = "PK"
         
         # Get account information
@@ -204,9 +204,6 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
     
     
-#THIS CODE CREATE BY @Saeedxdie
-#THIS CODE CREATE BY @Saeedxdie
-#THIS CODE CREATE BY @Saeedxdie
 #THIS CODE CREATE BY @Saeedxdie
 #THIS CODE CREATE BY @Saeedxdie
 #THIS CODE CREATE BY @Saeedxdie
