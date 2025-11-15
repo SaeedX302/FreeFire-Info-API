@@ -13,20 +13,13 @@ from google.protobuf import json_format, message
 from google.protobuf.message import Message
 from Crypto.Cipher import AES
 import base64
-from Crypto.Util.Padding import pad # Added this import
 
 # === Settings ===
 MAIN_KEY = base64.b64decode('WWcmdGMlREV1aDYlWmNeOA==')
 MAIN_IV = base64.b64decode('Nm95WkRyMjJFM3ljaGpNJQ==')
-
-# New key and IV for encrypt_api from the provided script
-ENCRYPT_API_KEY = bytes([89, 103, 38, 116, 99, 37, 68, 69, 117, 104, 54, 37, 90, 99, 94, 56])
-ENCRYPT_API_IV = bytes([54, 111, 121, 90, 68, 114, 50, 50, 69, 51, 121, 99, 104, 106, 77, 37])
-
 RELEASEVERSION = "OB51"
 USERAGENT = "Dalvik/2.1.0 (Linux; U; Android 13; CPH2095 Build/RKQ1.211119.001)"
 SUPPORTED_REGIONS = {"PK", "BR", "US", "SAC", "NA", "SG", "RU", "ID", "TW", "VN", "TH", "ME", "IND", "CIS", "BD", "EU"}
-REGION_LANG = {"ME": "ar","IND": "hi","ID": "id","VN": "vi","TH": "th","BD": "bn","PK": "ur","TW": "zh","CIS": "ru","SAC": "es","BR": "pt", "SG": "en"}
 
 # === Flask App Setup ===
 app = Flask(__name__)
@@ -35,19 +28,13 @@ cache = TTLCache(maxsize=100, ttl=300)
 cached_tokens = defaultdict(dict)
 
 # === Helper Functions ===
-def _custom_pad(text: bytes) -> bytes:
+def pad(text: bytes) -> bytes:
     padding_length = AES.block_size - (len(text) % AES.block_size)
     return text + bytes([padding_length] * padding_length)
 
 def aes_cbc_encrypt(key: bytes, iv: bytes, plaintext: bytes) -> bytes:
     aes = AES.new(key, AES.MODE_CBC, iv)
-    return aes.encrypt(_custom_pad(plaintext))
-
-def encrypt_api(plain_text_hex):
-    plain_text = bytes.fromhex(plain_text_hex)
-    cipher = AES.new(ENCRYPT_API_KEY, AES.MODE_CBC, ENCRYPT_API_IV)
-    cipher_text = cipher.encrypt(pad(plain_text, AES.block_size))
-    return cipher_text.hex()
+    return aes.encrypt(pad(plaintext))
 
 def decode_protobuf(encoded_data: bytes, message_type: message.Message) -> message.Message:
     instance = message_type()
@@ -83,56 +70,35 @@ def get_account_credentials(region: str) -> str:
     else:
         return "uid=3158350464&password=70EA041FCF79190E3D0A8F3CA95CAAE1F39782696CE9D85C2CCD525E28D223FC"
 
-def get_server_url(region: str) -> str:
-    r = region.upper()
-    if r in {"PK", "EU", "ID", "TH", "VN", "VI", "SG", "BD", "RU", "ME"}:
-        return "https://clientbp.ggblueshark.com"
-    elif r == "IND":
-        return "https://client.ind.freefiremobile.com"
-    elif r in {"BR", "US", "NA"}:
-        return "https://client.us.freefiremobile.com"
-    else:
-        return "https://clientbp.ggblueshark.com"
-
+# === Token Generation ===
 async def get_access_token(account: str):
     url = "https://ffmconnect.live.gop.garenanow.com/oauth/guest/token/grant"
     payload = account + "&response_type=token&client_type=2&client_secret=2ee44819e9b4598845141067b281621874d0d5d7af9d8f7e00c1e54715b7d1e3&client_id=100067"
     headers = {'User-Agent': USERAGENT, 'Connection': "Keep-Alive", 'Accept-Encoding': "gzip", 'Content-Type': "application/x-www-form-urlencoded"}
     async with httpx.AsyncClient() as client:
-        resp = await client.post(url, data=payload, headers=headers, timeout=30)
+        resp = await client.post(url, data=payload, headers=headers)
         data = resp.json()
         return data.get("access_token", "0"), data.get("open_id", "0")
 
 async def create_jwt(region: str):
     account = get_account_credentials(region)
     token_val, open_id = await get_access_token(account)
-
-    # Constructing the complex payload similar to the provided script
-    payload_parts = [
-        b'\x1a\x132025-08-30 05:19:21"\tfree fire(\x01:\x081.114.13B2Android OS 9 / API-28 (PI/rel.cjw.20220518.114133)J\x08HandheldR\nATM MobilsZ\x04WIFI`\xb6\nh\xee\x05r\x03300z\x1fARMv7 VFPv3 NEON VMH | 2400 | 2\x80\x01\xc9\x0f\x8a\x01\x0fAdreno (TM) 640\x92\x01\rOpenGL ES 3.2\x9a\x01+Google|dfa4ab4b-9dc4-454e-8065-e70c733fa53f\xa2\x01\x0e105.235.139.91\xaa\x01\x02',
-        REGION_LANG.get(region.upper(), "en").encode("ascii"), # Use region's language
-        b'\xb2\x01 1d8ec0240ede109973f3321b9354b44d\xba\x01\x014\xc2\x01\x08Handheld\xca\x01\x10Asus ASUS_I005DA\xea\x01@afcfbf13334be42036e4f742c80b956344bed760ac91b3aff9b607a610ab4390\xf0\x01\x01\xca\x02\nATM Mobils\xd2\x02\x04WIFI\xca\x03 7428b253defc164018c604a1ebbfebdf\xe0\x03\xa8\x81\x02\xe8\x03\xf6\xe5\x01\xf0\x03\xaf\x13\xf8\x03\x84\x07\x80\x04\xe7\xf0\x01\x88\x04\xa8\x81\x02\x90\x04\xe7\xf0\x01\x98\x04\xa8\x81\x02\xc8\x04\x01\xd2\x04=/data/app/com.dts.freefireth-PdeDnOilCSFn37p1AH_FLg==/lib/arm\xe0\x04\x01\xea\x04_2087f61c19f57f2af4e7feff0b24d9d9|/data/app/com.dts.freefireth-PdeDnOilCSFn37p1AH_FLg==/base.apk\xf0\x04\x03\xf8\x04\x01\x8a\x05\x0232\x9a\x05\n2019118692\xb2\x05\tOpenGLES2\xb8\x05\xff\x7f\xc0\x05\x04\xe0\x05\xf3F\xea\x05\x07android\xf2\x05pKqsHT5ZLWrYljNb5Vqh//yFRlaPHSO9NWSQsVvOmdhEEn7W+VHNUK+Q+fduA3ptNrGB0Ll0LRz3WW0jOwesLj6aiU7sZ40p8BfUE/FI/jzSTwRe2\xf8\x05\xfb\xe4\x06\x88\x06\x01\x90\x06\x01\x9a\x06\x014\xa2\x06\x014\xb2\06"GQ@O\x00\x0e^\x00D\x06UA\x0ePM\r\x13hZ\x07T\x06\x0cm\\V\x0ejYV;\x0bU5'
-    ]
-
-    raw_payload = b''.join(payload_parts)
-    raw_payload = raw_payload.replace(b'afcfbf13334be42036e4f742c80b956344bed760ac91b3aff9b607a610ab4390', token_val.encode())
-    raw_payload = raw_payload.replace(b'1d8ec0240ede109973f3321b9354b44d', open_id.encode())
-
-    final_payload = bytes.fromhex(encrypt_api(raw_payload.hex()))
-
-    url = get_server_url(region) + "/MajorLogin"
+    body = json.dumps({"open_id": open_id, "open_id_type": "4", "login_token": token_val, "orign_platform_type": "4"})
+    proto_bytes = await json_to_proto(body, FreeFire_pb2.LoginReq())
+    payload = aes_cbc_encrypt(MAIN_KEY, MAIN_IV, proto_bytes)
+    url = "https://loginbp.ggblueshark.com/MajorLogin"
     headers = {
         'User-Agent': USERAGENT, 'Connection': "Keep-Alive", 'Accept-Encoding': "gzip",
         'Content-Type': "application/octet-stream", 'Expect': "100-continue",
         'X-Unity-Version': "2018.4.11f1", 'X-GA': "v1 1", 'ReleaseVersion': RELEASEVERSION
     }
     async with httpx.AsyncClient() as client:
-        resp = await client.post(url, data=final_payload, headers=headers, timeout=30)
+        resp = await client.post(url, data=payload, headers=headers)
         msg = json.loads(json_format.MessageToJson(decode_protobuf(resp.content, FreeFire_pb2.LoginRes)))
         cached_tokens[region] = {
             'token': f"Bearer {msg.get('token','0')}",
             'region': msg.get('lockRegion','0'),
-            'server_url': get_server_url(region),
+            'server_url': msg.get('serverUrl','0'),
             'expires_at': time.time() + 25200
         }
 
@@ -221,7 +187,8 @@ async def get_account_info():
         return jsonify({"error": "Please provide UID."}), 400
     
     try:
-        region = request.args.get('region', 'PK').upper() # Default to PK if not provided
+        # Default region
+        region = "PK"
         
         # Get account information
         return_data = await GetAccountInformation(uid, "7", region, "/GetPlayerPersonalShow")
