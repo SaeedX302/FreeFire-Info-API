@@ -49,26 +49,12 @@ def get_account_credentials(region: str) -> str:
     r = region.upper()
     if r == "PK":
         return "uid=4017149174&password=754NCUB3ZYJNAX1OI24BR9BGHFS5L1046841MFDDQ9CMME9N1Q846R2X27KN49NH"
-    elif r == "IND":
-        return "uid=4288511979&password=I_6ZSU8_BY_SPIDEERIO_GAMING_K2BWU"
-    elif r == "EUROPE":
-        return "uid=4147772370&password=8D6F0E27FEEB565E43B8EBE9BFDB3007F18B00D81E8F33269D840C97667C9AB5"
-    elif r == "ME":
-        return "uid=4260531157&password=saeedxmotoxkaka_J7FAA5VUJ1H"
-    elif r == "ID":
-        return "uid=4260534584&password=saeedxmotoxkaka_HDKG6UAIFDC"
-    elif r == "TH":
-        return "uid=4260538360&password=saeedxmotoxkaka_0RAJK56TTWT"
-    elif r in {"VN", "VI"}:
-        return "uid=4260542161&password=saeedxmotoxkaka_ARLN3LDW3JZ"
-    elif r == "SG":
-        return "uid=3158350464&password=70EA041FCF79190E3D0A8F3CA95CAAE1F39782696CE9D85C2CCD525E28D223FC"
     elif r == "BD":
         return "uid=4260559999&password=saeedxmotoxkaka_3PJ4Z1XNC3Q"
-    elif r == "RU":
-        return "uid=3309128798&password=412F68B618A8FAEDCCE289121AC4695C0046D2E45DB07EE512B4B3516DDA8B0F"
+    elif r in {"BR", "US", "SAC", "ME"}:
+        return "uid=4260531157&password=saeedxmotoxkaka_J7FAA5VUJ1H"
     else:
-        return "uid=3158350464&password=70EA041FCF79190E3D0A8F3CA95CAAE1F39782696CE9D85C2CCD525E28D223FC"
+        return "uid=4288511979&password=I_6ZSU8_BY_SPIDEERIO_GAMING_K2BWU"
 
 # === Token Generation ===
 async def get_access_token(account: str):
