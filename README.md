@@ -10,8 +10,8 @@
   <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Flask-Async-green?logo=flask" />
   <img src="https://img.shields.io/badge/License-MIT-orange" />
-  <img src="https://img.shields.io/github/stars/Saeedx302/FreeFire-Info-API?style=social" />
-  <img src="https://img.shields.io/github/forks/Saeedx302/FreeFire-Info-API?style=social" />
+  <img src="https://img.shields.io/github/stars/TSun-FreeFire/TSun-FF-Info-API?style=social" />
+  <img src="https://img.shields.io/github/forks/TSun-FreeFire/TSun-FF-Info-API?style=social" />
 </p>
 
 ---
@@ -88,8 +88,8 @@ GET /get?uid=123456789
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/Saeedxdie/FreeFire-Info-API.git
-cd FreeFire-Info-API
+git clone https://github.com/TSun-FreeFire/TSun-FF-Info-API.git
+cd TSun-FF-Info-API
 ```
 
 ### 2️⃣ Install Dependencies
